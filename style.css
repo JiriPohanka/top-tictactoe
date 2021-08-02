@@ -1,0 +1,84 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-size: 100%;
+}
+
+main {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header {
+    min-height: 50px;
+    background-color: beige;
+    width: 100%;
+    position: absolute;
+}
+
+.play-field {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+}
+
+.top-left {
+    grid-area: top-left;
+}
+
+.top-mid {
+    grid-area: top-mid;
+}
+
+.top-right {
+    grid-area: top-right;
+}
+
+.mid-left {
+    grid-area: mid-left;
+}
+
+.mid-mid {
+    grid-area: mid-mid;
+}
+
+.mid-right {
+    grid-area: mid-right;
+}
+
+.bot-left {
+    grid-area: bot-left;
+}
+
+.bot-mid {
+    grid-area: bot-mid;
+}
+
+.bot-right {
+    grid-area: bot-right;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr repeat(3, 150px) 1fr;
+    grid-template-rows: repeat(3, 150px);
+    grid-template-areas:
+    ". top-left top-mid top-right ."
+    ". mid-left mid-mid mid-right ."
+    ". bot-left bot-mid bot-right .";
+    justify-items: stretch;
+    align-items: stretch;
+    align-content: center;
+    justify-content: center;
+    text-align: center;
+    grid-gap: 1px;
+    background-color: black;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+
+.play-box {
+    background-color: white;
+}
