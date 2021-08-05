@@ -1,27 +1,31 @@
 // factory func for player creation
-const newPlayer = (mark) => {
-    return { mark }
+const newPlayer = (mark, color) => {
+    return { mark, color }
 }
 
 // factory func for gameboard creating
 const getGameBoard = () => {
-    const moves = ["", "", "", "", "", "", "", "", ""];
-    let roundsPlayed = 0;
+    let moves = ["", "", "", "", "", "", "", "", ""]
+    let roundsPlayed = 0
 
     //generate new players
-    const player1 = newPlayer("x");
-    const player2 = newPlayer("o");
+    const player1 = newPlayer("x", "blue")
+    const player2 = newPlayer("o", "red")
 
     const getMoves = () => {
-        console.log(moves, "roundsPlayed: " + roundsPlayed);
+        console.log(moves, "roundsPlayed: " + roundsPlayed)
     }
 
     const determinePlayer = () => {
         if (roundsPlayed % 2 === 0) {
-            return player1;
+            return player1
         } else {
-            return player2;
+            return player2
         }
+    }
+
+    const logPlayers = function () {
+        console.log(player1, player2)
     }
 
     const makeMove = function (i) {
@@ -30,7 +34,6 @@ const getGameBoard = () => {
 
         // prevent players from playing into a taken field
         if (moves[i] === player1.mark || moves[i] === player2.mark) {
-            console.log("field is taken, move again")
             const isFieldTaken = true
             return { gameOutcome, isFieldTaken }
         }
@@ -38,8 +41,8 @@ const getGameBoard = () => {
         // if the move is legal, not into a taken field
         if (moves[i] !== player1.mark || moves[i] !== player2.mark) {
             const activePlayer = determinePlayer(roundsPlayed) //determine player to play
-            roundsPlayed++;
-            moves.splice(i, 1, activePlayer.mark);
+            roundsPlayed++
+            moves.splice(i, 1, activePlayer.mark)
             return { gameOutcome, activePlayer }
         }
     }
@@ -64,14 +67,12 @@ const getGameBoard = () => {
             if (moves[combo[0]] === moves[combo[1]] && moves[combo[1]] === moves[combo[2]] && moves[combo[0]] !== "") {
                 gameOutcome = "win"
                 const winner = determineWinner(moves[combo[0]])
-                console.log("it's a win and the winner is " + winner.mark)
                 return { gameOutcome, winner } // win, returns "win" & winner
             }
         }
 
         if (roundsPlayed === 9) {
             gameOutcome = "tie"
-            console.log("it's a tie")
             return { gameOutcome } // tie, returns "tie"
         } else {
             gameOutcome = "ongoing"
@@ -93,9 +94,15 @@ const getGameBoard = () => {
             console.log("oops, something is wrong")
             return null
         }
+        
     }
 
-    return { makeMove, getMoves, determineOutcome };
+    const resetGameboard = function () {
+        moves = ["", "", "", "", "", "", "", "", ""]
+        roundsPlayed = 0
+    }
+
+    return { makeMove, getMoves, determineOutcome, resetGameboard, logPlayers };
 }
 
 //generate new gameboard
@@ -105,6 +112,8 @@ const gameBoard = getGameBoard();
 const gameBoardUI = (() => {
 
     const gameBoxes = document.querySelectorAll('.play-box')
+    const announcementSpan = document.querySelector('.announcement-span')
+    const blocker = document.querySelector('.blocker')
 
     //attach listeners to divs in grid
     const attachEventListenersToPlayField = () => {
@@ -118,10 +127,17 @@ const gameBoardUI = (() => {
 
                 //if field is taken
                 if (moveResult.gameOutcome === "ongoing" && moveResult.isFieldTaken) {
-                    console.log("create span to tell players field is taken")
+                    announcementSpan.textContent = "field is already taken, play again"
                     return // dont do anything, wait for a valid move
                 } else {
+                    if (moveResult.activePlayer.mark === "x") {
+                        gameBox.classList.toggle('blue')
+                    } else {
+                        gameBox.classList.toggle('red')
+                    }
                     gameBox.textContent = moveResult.activePlayer.mark
+                    announcementSpan.textContent = "nice move, keep going!"
+
                 }
 
                 // after legal move, check if game is over
@@ -132,21 +148,45 @@ const gameBoardUI = (() => {
                 }
 
                 if (outcome.gameOutcome === "win") {
-                    console.log("create span to tell players that game is over and winner is")
-                    console.log(outcome.winner.mark)
-                    // game's over, remove event listeners etc.
+                    announcementSpan.textContent = `${outcome.winner.mark} is the winner! Care for a rematch?`
+                    showRematchBtn()
+                    return
                 }
 
                 if (outcome.gameOutcome === "tie") {
-                    console.log("create span to tell players game is tie")
-                    // game's over, remove event listeners etc.
+                    announcementSpan.textContent = `It's a tie! Care for a rematch?`
+                    showRematchBtn()
+                    return
                 }
 
             })
         }
     }
-
     attachEventListenersToPlayField()
+
+    const resetGameUI = function () {
+        for (let gameBox of gameBoxes) {
+            gameBox.textContent = "" //delete x and o from divs
+            gameBox.classList.remove('red', 'blue')
+        }
+        announcementSpan.textContent = `Click any field to start playing!`
+    }
+    
+    const showRematchBtn = () => {
+        blocker.classList.toggle('show')
+        const rematchBtn = document.createElement('button')
+        rematchBtn.textContent = "rematch"
+        rematchBtn.classList.add('rematch-btn')
+        blocker.appendChild(rematchBtn)
+        
+        rematchBtn.addEventListener('click', (e) => {
+            gameBoard.resetGameboard()
+            resetGameUI()
+            blocker.classList.toggle('show')
+            blocker.innerHTML = ""
+        })
+    }
+
 })()
 
 
