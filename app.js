@@ -26,23 +26,27 @@ const getGameBoard = () => {
 
     const makeMove = function (i) {
 
+        let gameOutcome = "ongoing"
+
         // prevent players from playing into a taken field
         if (moves[i] === player1.mark || moves[i] === player2.mark) {
             console.log("field is taken, move again")
-        } else {
-            const activePlayer = determinePlayer(roundsPlayed)
-            moves.splice(i, 1, activePlayer.mark);
-            roundsPlayed++;
-            return activePlayer
+            const isFieldTaken = true
+            return { gameOutcome, isFieldTaken }
         }
 
-        if (isGameFinished()) {
-            console.log("game's finished!")
-            return
+        // if the move is legal, not into a taken field
+        if (moves[i] !== player1.mark || moves[i] !== player2.mark) {
+            const activePlayer = determinePlayer(roundsPlayed) //determine player to play
+            roundsPlayed++;
+            moves.splice(i, 1, activePlayer.mark);
+            return { gameOutcome, activePlayer }
         }
     }
 
-    const isGameFinished = function () {
+    const determineOutcome = function () {
+
+        // winning combinations
         const combosArr = [
             [0, 1, 2],
             [3, 4, 5],
@@ -54,22 +58,34 @@ const getGameBoard = () => {
             [2, 4, 6]
         ]
 
+        // check for winning with the last move
+        // if is win, game stops
         for (let combo of combosArr) {
             if (moves[combo[0]] === moves[combo[1]] && moves[combo[1]] === moves[combo[2]] && moves[combo[0]] !== "") {
-                determineWinner(moves[combo[0]])
-                return true
+                gameOutcome = "win"
+                const winner = determineWinner(moves[combo[0]])
+                console.log("it's a win and the winner is " + winner.mark)
+                return { gameOutcome, winner } // win, returns "win" & winner
             }
         }
+
+        if (roundsPlayed === 9) {
+            gameOutcome = "tie"
+            console.log("it's a tie")
+            return { gameOutcome } // tie, returns "tie"
+        } else {
+            gameOutcome = "ongoing"
+            return { gameOutcome } // no result, returns "ongoing"
+        }
+
     }
 
     const determineWinner = function (symbol) {
         if (symbol === player1.mark) {
-            console.log("player1 wins")
             return player1
         }
 
         if (symbol === player2.mark) {
-            console.log("player2 wins")
             return player2
         }
 
@@ -79,45 +95,58 @@ const getGameBoard = () => {
         }
     }
 
-    return { makeMove, getMoves, player1, player2 };
+    return { makeMove, getMoves, determineOutcome };
 }
 
+//generate new gameboard
+const gameBoard = getGameBoard();
 
-// module for manipulating DOM
+// module responsible for DOM manipulation
 const gameBoardUI = (() => {
 
     const gameBoxes = document.querySelectorAll('.play-box')
-
 
     //attach listeners to divs in grid
     const attachEventListenersToPlayField = () => {
         for (let [i, gameBox] of gameBoxes.entries()) {
 
+            // on click, the dom adds player.mark to the div
             gameBox.addEventListener('click', (e) => {
 
                 // const gameBoxID = e.target.dataset.boxId;
-                const activePlayer = gameBoard.makeMove(i)
-                gameBox.textContent = activePlayer.mark
+                const moveResult = gameBoard.makeMove(i);
+
+                //if field is taken
+                if (moveResult.gameOutcome === "ongoing" && moveResult.isFieldTaken) {
+                    console.log("create span to tell players field is taken")
+                    return // dont do anything, wait for a valid move
+                } else {
+                    gameBox.textContent = moveResult.activePlayer.mark
+                }
+
+                // after legal move, check if game is over
+                const outcome = gameBoard.determineOutcome()
+
+                if (outcome.gameOutcome === "ongoing") {
+                    return // game's not over, keep playing
+                }
+
+                if (outcome.gameOutcome === "win") {
+                    console.log("create span to tell players that game is over and winner is")
+                    console.log(outcome.winner.mark)
+                    // game's over, remove event listeners etc.
+                }
+
+                if (outcome.gameOutcome === "tie") {
+                    console.log("create span to tell players game is tie")
+                    // game's over, remove event listeners etc.
+                }
+
             })
         }
     }
+
     attachEventListenersToPlayField()
-
-
-
-
 })()
 
 
-//generate new gameboard
-const gameBoard = getGameBoard();
-
-
-
-
-
-
-// //on load 
-// window.addEventListener('load', () => {
-//     attachEventListenersToPlayField();
-// })
